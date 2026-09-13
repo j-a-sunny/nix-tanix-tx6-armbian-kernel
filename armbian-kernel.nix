@@ -71,6 +71,7 @@ stdenv.mkDerivation rec {
 
   passthru = {
     inherit modDirVersion;
+    target = "Image";
     isLTS = false;
     isZen = false;
     kernelOlder = lib.versionOlder version;
