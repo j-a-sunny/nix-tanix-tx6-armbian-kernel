@@ -58,6 +58,8 @@ tested. Two practical consequences:
 
 ### As a flake input in your own NixOS config
 
+1. Add this repository as a flake input and apply its overlay:
+
 ```nix
 {
   inputs = {
@@ -80,8 +82,8 @@ tested. Two practical consequences:
 }
 ```
 
-In `configuration.nix`, select the stable, edge, or header-enabled package
-set with `boot.kernelPackages`:
+2. In `configuration.nix`, select the stable, edge, or header-enabled package
+   set with `boot.kernelPackages`:
 
 ```nix
 {
@@ -106,7 +108,7 @@ The header variants use the same kernel package set because the derivation
 always provides its matching `kernel.dev` output; the `withHeaders` suffix
 makes that intent explicit in the configuration.
 
-Configure the board integration in your own `configuration.nix`:
+3. Configure the board integration in your own `configuration.nix`:
 
 ```nix
 {
@@ -115,7 +117,6 @@ Configure the board integration in your own `configuration.nix`:
     name = "allwinner/sun50i-h6-tanix-tx6.dtb";
   };
   hardware.enableRedistributableFirmware = true;
-  zramSwap.enable = true;
   boot.loader.grub.enable = false;
   boot.loader.generic-extlinux-compatible = {
     enable = true;
@@ -131,6 +132,20 @@ Configure the board integration in your own `configuration.nix`:
 The configuration above includes the board settings required by this
 prebuilt kernel, including the device tree, extlinux bootloader, HDMI mode,
 and scripted initrd settings.
+
+4. Optionally enable zram:
+
+```nix
+{
+  zramSwap.enable = true;
+}
+```
+
+5. Rebuild the system:
+
+```bash
+sudo nixos-rebuild switch --flake .#tanix-tx6
+```
 
 ### Standalone
 
