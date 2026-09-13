@@ -8,18 +8,32 @@
   outputs =
     { self, nixpkgs, ... }:
     let
-      system = "aarch64-linux";
-      pkgs = import nixpkgs { inherit system; };
+      # The kernel/dtb/headers themselves only make sense on the board
+      # (aarch64-linux), but nothing in armbian-kernel.nix actually compiles
+      # anything — it's just dpkg-deb -x and cp, which work fine regardless
+      # of the host doing the building. Generating outputs for x86_64-linux
+      # too means CI (GitHub's runners are x86_64) can run `nix run
+      # .#update-sources` and `nix build .#armbian-kernel-tanix-tx6` to
+      # verify a new pin, without needing QEMU/cross-compilation.
+      systems = [
+        "aarch64-linux"
+        "x86_64-linux"
+      ];
+      forAllSystems = nixpkgs.lib.genAttrs systems;
+      pkgsFor = system: import nixpkgs { inherit system; };
     in
     {
       # `nix build .#armbian-kernel-tanix-tx6` — build the kernel standalone.
-      # Note: this only extracts pre-built ARM binaries (dpkg-deb -x + cp),
-      # it doesn't compile anything, so it builds fine on an x86_64 host too
-      # (e.g. in CI) without needing QEMU/binfmt cross-compilation support.
-      packages.${system} = {
-        armbian-kernel-tanix-tx6 = pkgs.callPackage ./armbian-kernel.nix { };
-        default = self.packages.${system}.armbian-kernel-tanix-tx6;
-      };
+      packages = forAllSystems (
+        system:
+        let
+          pkgs = pkgsFor system;
+        in
+        {
+          armbian-kernel-tanix-tx6 = pkgs.callPackage ./armbian-kernel.nix { };
+          default = pkgs.callPackage ./armbian-kernel.nix { };
+        }
+      );
 
       # For consuming this from another flake's own nixpkgs instance:
       #   nixpkgs.overlays = [ inputs.nix-tanix-tx6-armbian-kernel.overlays.default ];
@@ -45,24 +59,32 @@
       # `nix run .#update-sources` — check Armbian's repo for a newer build
       # and regenerate sources.nix with pinned URLs/hashes. Doesn't touch
       # any running system; just rewrites a text file for you to review.
-      apps.${system}.update-sources = {
-        type = "app";
-        program = pkgs.lib.getExe (
-          pkgs.writeShellApplication {
-            name = "update-armbian-sources";
-            runtimeInputs = with pkgs; [
-              curl
-              gzip
-              dpkg
-              gnused
-              gawk
-              coreutils
-              findutils
-              nix
-            ];
-            text = builtins.readFile ./update-sources.sh;
-          }
-        );
-      };
+      apps = forAllSystems (
+        system:
+        let
+          pkgs = pkgsFor system;
+        in
+        {
+          update-sources = {
+            type = "app";
+            program = pkgs.lib.getExe (
+              pkgs.writeShellApplication {
+                name = "update-armbian-sources";
+                runtimeInputs = with pkgs; [
+                  curl
+                  gzip
+                  dpkg
+                  gnused
+                  gawk
+                  coreutils
+                  findutils
+                  nix
+                ];
+                text = builtins.readFile ./update-sources.sh;
+              }
+            );
+          };
+        }
+      );
     };
 }
