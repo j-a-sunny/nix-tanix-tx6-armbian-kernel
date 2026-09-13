@@ -73,5 +73,10 @@ stdenv.mkDerivation rec {
     features = { };
   };
 
-  meta.platforms = [ "aarch64-linux" ];
+  # The package contains aarch64 binaries, but its build phase only extracts
+  # Debian packages and copies files, so it can be built on x86_64 hosts too.
+  meta.platforms = [
+    "aarch64-linux"
+    "x86_64-linux"
+  ];
 }
