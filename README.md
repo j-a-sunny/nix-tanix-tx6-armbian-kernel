@@ -69,7 +69,9 @@ tested. Two practical consequences:
     nixosConfigurations.tanix-tx6 = nixpkgs.lib.nixosSystem {
       system = "aarch64-linux";
       modules = [
-        tanix-tx6-kernel.nixosModules.default
+        {
+          nixpkgs.overlays = [ tanix-tx6-kernel.overlays.default ];
+        }
         ./configuration.nix
         ./hardware-configuration.nix
       ];
@@ -78,26 +80,11 @@ tested. Two practical consequences:
 }
 ```
 
-ZFS is intentionally left to standard NixOS
-configuration, so enable it separately only when needed:
+In `configuration.nix`, select the stable, edge, or header-enabled package
+set with `boot.kernelPackages`:
 
 ```nix
 {
-  boot.supportedFilesystems = [ "zfs" ];
-  networking.hostId = "01234567";
-}
-```
-
-NixOS will select and build the ZFS module for the kernel provided by this
-flake. The `networking.hostId` value must be a unique eight-character
-hexadecimal ID for the machine.
-
-Use the kernel package directly. Add the overlay, then select
-the stable, edge, or header-enabled package set with `boot.kernelPackages`:
-
-```nix
-{
-  nixpkgs.overlays = [ tanix-tx6-kernel.overlays.default ];
   boot.kernelPackages = pkgs.linuxPackages-tanix-tx6;
   # Edge/latest branch:
   # boot.kernelPackages = pkgs.linuxPackages-tanix-tx6-latest;
@@ -119,8 +106,7 @@ The header variants use the same kernel package set because the derivation
 always provides its matching `kernel.dev` output; the `withHeaders` suffix
 makes that intent explicit in the configuration.
 
-When using the direct package-set form, configure the board integration in
-your own `configuration.nix`:
+Configure the board integration in your own `configuration.nix`:
 
 ```nix
 {
@@ -142,16 +128,9 @@ your own `configuration.nix`:
 }
 ```
 
-The `nixosModules.default` form above includes all of these board defaults,
-including the HDMI kernel parameter. It is applied with `lib.mkDefault`, so
-you can override `boot.kernelParams` when using a different display setup.
-Direct package selection is recommended when using the four named
-`boot.kernelPackages` variants.
-
-That module sets `boot.kernelPackages`, the device tree, and the two
-`boot.initrd.*` settings this kernel needs (see
-[Known limitations](#known-limitations)) — you don't need to configure
-those yourself.
+The configuration above includes the board settings required by this
+prebuilt kernel, including the device tree, extlinux bootloader, HDMI mode,
+and scripted initrd settings.
 
 ### Standalone
 
@@ -200,8 +179,8 @@ other flake input bump.
 - **Scripted initrd, not systemd-stage-1.** This kernel doesn't go through
   nixpkgs' normal kernel-build machinery, so it lacks the parsed Kconfig
   object `boot.initrd.systemd.enable`'s initrd module wants to inspect.
-  The `nixosModules.default` sets `boot.initrd.systemd.enable = false;` to
-  route around this. Scripted initrd works fine; it's just slated for
+  The configuration sets `boot.initrd.systemd.enable = false;` to route
+  around this. Scripted initrd works fine; it's just slated for
   eventual removal upstream in NixOS.
 - **`boot.initrd.includeDefaultModules = false;`** — NixOS's default
   initrd module set includes x86-oriented drivers (`ahci`, `ata_piix`,

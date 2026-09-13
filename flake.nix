@@ -76,62 +76,6 @@
         linuxPackages-tanix-tx6-latest-withHeaders = final.linuxPackages-tanix-tx6-latest;
       };
 
-      # Drop this straight into a NixOS config on the board:
-      #   imports = [ inputs.nix-tanix-tx6-armbian-kernel.nixosModules.default ];
-      nixosModules.default =
-        {
-          config,
-          lib,
-          pkgs,
-          ...
-        }:
-        let
-          cfg = config.armbianKernel;
-          kernel =
-            if cfg.branch == "edge" then pkgs.armbianKernelTanixTx6Edge else pkgs.armbianKernelTanixTx6;
-        in
-        {
-          options.armbianKernel = {
-            branch = lib.mkOption {
-              type = lib.types.enum [
-                "stable"
-                "edge"
-              ];
-              default = "stable";
-              description = "Armbian kernel branch to install.";
-            };
-
-            headers.enable = lib.mkEnableOption "Armbian kernel headers";
-          };
-
-          config = {
-            nixpkgs.overlays = [ self.overlays.default ];
-            boot.kernelPackages =
-              if cfg.branch == "edge" then pkgs.linuxPackages-tanix-tx6-latest else pkgs.linuxPackages-tanix-tx6;
-            environment.systemPackages = lib.optional cfg.headers.enable kernel.dev;
-
-            hardware.deviceTree = {
-              enable = lib.mkDefault true;
-              name = lib.mkDefault "allwinner/sun50i-h6-tanix-tx6.dtb";
-            };
-            hardware.enableRedistributableFirmware = lib.mkDefault true;
-            zramSwap.enable = lib.mkDefault true;
-            boot.loader.grub.enable = lib.mkDefault false;
-            boot.loader.generic-extlinux-compatible = {
-              enable = lib.mkDefault true;
-              configurationLimit = lib.mkDefault 10;
-              useGenerationDeviceTree = lib.mkDefault true;
-            };
-            boot.kernelParams = lib.mkAfter [ "video=HDMI-A-1:1920x1080@60" ];
-
-            # Necessary because this kernel is repackaged from Armbian's
-            # prebuilt binaries rather than built through nixpkgs' own kernel
-            # machinery — see README for why.
-            boot.initrd.includeDefaultModules = false;
-            boot.initrd.systemd.enable = false;
-          };
-        };
-
       # `nix run .#update-sources` — check Armbian's repo for a newer build
       # and regenerate sources.nix with pinned URLs/hashes. Doesn't touch
       # any running system; just rewrites a text file for you to review.
