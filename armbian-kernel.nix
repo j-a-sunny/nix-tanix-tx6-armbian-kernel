@@ -4,9 +4,12 @@
   fetchurl,
   dpkg,
   runCommand,
+  sourcesFile ? ./sources.nix,
+  features ? { },
+  ...
 }:
 let
-  sources = import ./sources.nix;
+  sources = import sourcesFile;
 
   # Fetch + extract all four .debs in one shared derivation, so the network
   # fetches are pinned/reproducible (via fixed sha256 hashes) and happen
@@ -68,9 +71,11 @@ stdenv.mkDerivation rec {
 
   passthru = {
     inherit modDirVersion;
+    isLTS = false;
+    isZen = false;
     kernelOlder = lib.versionOlder version;
     kernelAtLeast = lib.versionAtLeast version;
-    features = { };
+    inherit features;
   };
 
   # The package contains aarch64 binaries, but its build phase only extracts

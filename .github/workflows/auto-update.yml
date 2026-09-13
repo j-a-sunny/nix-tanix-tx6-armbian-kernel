@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   schedule:
     # Daily at 06:00 UTC — adjust to taste
-    - cron: '0 6 * * *'
+    - cron: "0 6 * * *"
 
 permissions:
   contents: write
@@ -26,13 +26,19 @@ jobs:
       - name: Check for a newer Armbian kernel
         run: nix run .#update-sources
 
+      - name: Check for a newer Armbian edge kernel
+        run: BRANCH=edge SOURCES_NIX=./sources-edge.nix nix run .#update-sources
+
       - name: Verify the new pin actually builds
         run: nix build .#armbian-kernel-tanix-tx6 -L
 
-      - name: Commit sources.nix if it changed
+      - name: Verify the edge pin actually builds
+        run: nix build .#armbian-kernel-tanix-tx6-edge -L
+
+      - name: Commit source pins if they changed
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: 'Update Armbian kernel pin'
-          file_pattern: sources.nix
-          commit_user_name: 'github-actions[bot]'
-          commit_user_email: 'github-actions[bot]@users.noreply.github.com'
+          commit_message: "Update Armbian kernel pins"
+          file_pattern: "sources.nix sources-edge.nix"
+          commit_user_name: "github-actions[bot]"
+          commit_user_email: "github-actions[bot]@users.noreply.github.com"
