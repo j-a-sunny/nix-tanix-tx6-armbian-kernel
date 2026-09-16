@@ -9,7 +9,7 @@
 
 set -euo pipefail
 
-REPO_BASE="https://beta.armbian.com"
+REPO_BASE="https://apt.armbian.com"
 PACKAGES_PATH="/dists/sid/main/binary-arm64/Packages"
 
 # "current" or "edge" — change this one value (or set BRANCH env var) to
@@ -28,9 +28,36 @@ log() { echo "[update-sources] $*" >&2; }
 WORKDIR="$(mktemp -d)"
 trap 'rm -rf "$WORKDIR"' EXIT
 
+fetch_index() {
+  curl -fsSL "${REPO_BASE}${PACKAGES_PATH}.gz" -o "${WORKDIR}/Packages.gz" || return 1
+  gunzip -f "${WORKDIR}/Packages.gz" || return 1
+  # Armbian rebuilds this index periodically; occasionally it's caught
+  # mid-rebuild and comes back truncated/empty rather than a clean 404.
+  # A real index is hundreds of KB+ of package stanzas — anything
+  # suspiciously small almost certainly means we hit that window, not that
+  # the repo is genuinely empty.
+  local size
+  size="$(stat -c%s "${WORKDIR}/Packages" 2>/dev/null || stat -f%z "${WORKDIR}/Packages")"
+  if [[ "$size" -lt 100000 ]]; then
+    log "warning: fetched index is only ${size} bytes, looks truncated"
+    return 1
+  fi
+  return 0
+}
+
 log "fetching package index (branch: $BRANCH)..."
-curl -fsSL "${REPO_BASE}${PACKAGES_PATH}.gz" -o "${WORKDIR}/Packages.gz"
-gunzip "${WORKDIR}/Packages.gz"
+ATTEMPTS=3
+for attempt in $(seq 1 "$ATTEMPTS"); do
+  if fetch_index; then
+    break
+  fi
+  if [[ "$attempt" -eq "$ATTEMPTS" ]]; then
+    log "error: could not fetch a valid package index after ${ATTEMPTS} attempts"
+    exit 1
+  fi
+  log "retrying in 30s (attempt ${attempt}/${ATTEMPTS})..."
+  sleep 30
+done
 
 extract_stanza() {
   local pkg="$1"
