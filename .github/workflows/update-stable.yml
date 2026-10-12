@@ -1,0 +1,39 @@
+name: Update stable kernel pin
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * *"
+
+permissions:
+  contents: write
+
+# Shared with update-edge.yml so the two never push at the same time.
+concurrency:
+  group: update-pins
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: cachix/install-nix-action@v31
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+
+      - name: Check for a newer stable kernel
+        run: nix run .#update-sources
+
+      - name: Verify the pin builds
+        run: nix build .#armbian-kernel-tanix-tx6 -L
+
+      - uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          commit_message: "Update Armbian stable kernel pin"
+          file_pattern: "sources.nix"
+          commit_user_name: "github-actions[bot]"
+          commit_user_email: "github-actions[bot]@users.noreply.github.com"
