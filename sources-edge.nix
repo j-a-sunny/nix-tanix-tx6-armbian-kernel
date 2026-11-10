@@ -1,21 +1,21 @@
 {
-  version = "7.3.1";
-  modDirVersion = "7.3.1-edge-sunxi64";
+  version = "7.3.3";
+  modDirVersion = "7.3.3-edge-sunxi64";
 
   image = {
-    url = "https://apt.armbian.com/pool/main/l/linux-7.3.1/linux-image-edge-sunxi64_26.8.14_arm64__7.3.1-S79a9-D68f5-P02ae-C4af3-Hb11b-HK01ba-Vc222-B0577-R448a.deb";
-    sha256 = "0a20vz1gmn1mwzr7afp5hamghh3pa4a7mv9zl1d6z6b1idpyzbnl";
+    url = "https://apt.armbian.com/pool/main/l/linux-7.3.3/linux-image-edge-sunxi64_26.11.1_arm64__7.3.3-Sd50d-D59fc-Pa063-C4af3-Hb11b-HK01ba-Vc222-Bdf9b-R448a.deb";
+    sha256 = "15yd52zjm2bypda4jqmi46748ljn0dnv6n9l8w6yylwayn4kf87q";
   };
   dtb = {
-    url = "https://apt.armbian.com/pool/main/l/linux-dtb-edge-sunxi64/linux-dtb-edge-sunxi64_26.8.14_arm64__7.3.1-S79a9-D68f5-P02ae-C4af3-Hb11b-HK01ba-Vc222-B0577-R448a.deb";
-    sha256 = "1p9bwzllp1sg22zi7l0pfk7gwh114hrgl7k936v4gxxp7zdz1d1h";
+    url = "https://apt.armbian.com/pool/main/l/linux-dtb-edge-sunxi64/linux-dtb-edge-sunxi64_26.11.1_arm64__7.3.3-Sd50d-D59fc-Pa063-C4af3-Hb11b-HK01ba-Vc222-Bdf9b-R448a.deb";
+    sha256 = "1min8bpd83j555zaa3ngs0vvdck27jllhlmsdwdnfnhigvcaikgm";
   };
   headers = {
-    url = "https://apt.armbian.com/pool/main/l/linux-headers-edge-sunxi64/linux-headers-edge-sunxi64_26.8.14_arm64__7.3.1-S79a9-D68f5-P02ae-C4af3-Hb11b-HK01ba-Vc222-B0577-R448a.deb";
-    sha256 = "082hb9cbl47dsv8lpadbrzd1hz8sc5aypib0rnby5f265k79gyrv";
+    url = "https://apt.armbian.com/pool/main/l/linux-headers-edge-sunxi64/linux-headers-edge-sunxi64_26.11.1_arm64__7.3.3-Sd50d-D59fc-Pa063-C4af3-Hb11b-HK01ba-Vc222-Bdf9b-R448a.deb";
+    sha256 = "19ific2s4sanqi3bq6b64ssvc4vz5vmg6ba8xzsfnxvnqxnazcsq";
   };
   libcDev = {
-    url = "https://apt.armbian.com/pool/main/l/linux-libc-dev-edge-sunxi64/linux-libc-dev-edge-sunxi64_26.8.14_arm64__7.3.1-S79a9-D68f5-P02ae-C4af3-Hb11b-HK01ba-Vc222-B0577-R448a.deb";
-    sha256 = "03gwzqldqdc5k6q7qcr5xxcpynfwbrq8s008djvgy3sk647037ii";
+    url = "https://apt.armbian.com/pool/main/l/linux-libc-dev-edge-sunxi64/linux-libc-dev-edge-sunxi64_26.11.1_arm64__7.3.3-Sd50d-D59fc-Pa063-C4af3-Hb11b-HK01ba-Vc222-Bdf9b-R448a.deb";
+    sha256 = "1f4nca8r97j63xqmyv2mxwpgh8gm3hnpzlj4pdw06a5n5f494wjr";
   };
 }
